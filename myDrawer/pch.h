@@ -19,3 +19,12 @@
 #define _DELETE_ARRAY(p){ if(p){delete[] (p); (p)=nullptr;} }
 #define _RELEASE(p)		{ if(p){(p)->Release(); (p)=nullptr;} }
 #define _CLOSE(p)		{ if(p){(p)->Close(); delete (p); (p)=nullptr;} }
+
+#include "../myD3D11Framework/myD3D11Framework.h"
+#ifdef _DEBUG
+#pragma comment(lib, "../Debug/myD3D11Framework.lib")
+#else
+#pragma comment(lib, "../Release/myD3D11Framework.lib")
+#endif
+
+using namespace myD3D11Framework;

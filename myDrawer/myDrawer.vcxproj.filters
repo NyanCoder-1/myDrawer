@@ -6,12 +6,14 @@
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="MainRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="MainRender.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="psMainShader.hlsl" />

@@ -23,6 +23,20 @@ void EndDraw();
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
+	Framework framework;
+
+	MyRender *render = new MyRender();
+
+	framework.SetRender(render);
+	framework.Init();
+
+	framework.Run();
+
+	framework.Close();
+
+	return 0;
+
+	/*
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -55,6 +69,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	CleanupDevice();
 
 	return (int)msg.wParam;
+	*/
 }
 
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)

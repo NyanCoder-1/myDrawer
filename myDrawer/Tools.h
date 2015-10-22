@@ -1,8 +1,6 @@
 #pragma once
 
 
-extern HWND g_hWnd;
-
 typedef struct Point
 {
 	Point(int x, int y) :x(x), y(y) {}
@@ -10,15 +8,20 @@ typedef struct Point
 	int x, y;
 } Point;
 
-enum tools
+typedef struct Line
 {
-	tPencil,
-	tLine,
-	tPolyline,
-	tRectangle,
-	tRoundRect,
-	tEllips
-};
+	Line()
+	{
+		points[0] = Point();
+		points[1] = Point();
+	}
+	Line(Point point1, Point point2)
+	{
+		points[0] = point1;
+		points[1] = point2;
+	};
+	Point points[2];
+} Line;
 
 class Shape
 {
@@ -33,8 +36,18 @@ public:
 	virtual void SetRound(int r) = 0;
 
 	virtual void Render() = 0;
+
+	int GetID() const { return id; };
+	vector<Line> GetLines() const { return Lines; };
+
+	bool IsEnd() const { return End; };
+
 protected:
 	unsigned char width;
+	int id;
+	bool End;
+	
+	vector<Line> Lines;
 };
 
 

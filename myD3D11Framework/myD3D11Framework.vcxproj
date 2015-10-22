@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="myD3D11Framework.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="InputCodes.h" />
@@ -155,14 +156,17 @@
     <ClInclude Include="macros.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Render.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Framework.cpp" />
     <ClCompile Include="InputMgr.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Render.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

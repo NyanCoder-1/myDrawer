@@ -146,18 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainRender.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Tools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="MainRender.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Shader.h" />
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <ItemGroup>

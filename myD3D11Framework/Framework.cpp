@@ -33,6 +33,7 @@ namespace myD3D11Framework
 
 	bool Framework::Init()
 	{
+		m_log.Print("Logging is begin");
 		m_wnd = new Window();
 		m_input = new InputMgr();
 
@@ -54,7 +55,7 @@ namespace myD3D11Framework
 		}
 		m_wnd->SetInputMgr(m_input);
 
-		if (!m_render->Init(m_wnd->GetHWND()))
+		if (!m_render->CreateDevice(m_wnd->GetHWND()))
 		{
 			Log::Get()->Err("Не удалось создать рендер");
 			return false;
@@ -79,6 +80,7 @@ namespace myD3D11Framework
 		// если окно изменило размер
 		if (m_wnd->IsResize())
 		{
+			m_render->Resize(m_wnd->GetHeight(), m_wnd->GetWidth());
 		}
 
 		m_render->BeginFrame();

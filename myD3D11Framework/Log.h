@@ -4,7 +4,7 @@ namespace myD3D11Framework
 {
 //------------------------------------------------------------------
 
-	class Log
+	class DLL Log
 	{
 	public:
 		Log();

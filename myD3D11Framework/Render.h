@@ -11,6 +11,7 @@ namespace myD3D11Framework
 		virtual ~Render();
 
 		bool CreateDevice(HWND hwnd);
+		virtual void Resize(int height, int width);
 		void BeginFrame();
 		void EndFrame();
 		void Shutdown();
@@ -26,6 +27,8 @@ namespace myD3D11Framework
 		ID3D11DeviceContext *m_pImmediateContext;
 		IDXGISwapChain *m_pSwapChain;
 		ID3D11RenderTargetView *m_pRenderTargetView;
+
+		int m_width, m_height;
 	};
 
 //------------------------------------------------------------------

@@ -1,11 +1,14 @@
 #include "pch.h"
+
+#include "Shader.h"
+
 #include "Render.h"
+#include "Buffer.h"
 #include "macros.h"
 
 namespace myD3D11Framework
 {
 //------------------------------------------------------------------
-
 
 	Render::Render()
 	{
@@ -27,8 +30,8 @@ namespace myD3D11Framework
 
 		RECT rc;
 		GetClientRect(hwnd, &rc);
-		UINT width = rc.right - rc.left;
-		UINT height = rc.bottom - rc.top;
+		m_width = rc.right - rc.left;
+		m_height = rc.bottom - rc.top;
 
 		UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -54,8 +57,8 @@ namespace myD3D11Framework
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferCount = 1;
-		sd.BufferDesc.Width = width;
-		sd.BufferDesc.Height = height;
+		sd.BufferDesc.Width = m_width;
+		sd.BufferDesc.Height = m_height;
 		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.BufferDesc.RefreshRate.Numerator = 60;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -88,8 +91,8 @@ namespace myD3D11Framework
 		m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
 
 		D3D11_VIEWPORT vp;
-		vp.Width = (FLOAT)width;
-		vp.Height = (FLOAT)height;
+		vp.Width = (FLOAT)m_width;
+		vp.Height = (FLOAT)m_height;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -97,6 +100,45 @@ namespace myD3D11Framework
 		m_pImmediateContext->RSSetViewports(1, &vp);
 
 		return Init(hwnd);
+	}
+	void Render::Resize(int height, int width)
+	{
+		if (m_pSwapChain)
+		{
+			m_pImmediateContext->OMSetRenderTargets(0, 0, 0);
+
+			// Освобождаем задний буффер
+			m_pRenderTargetView->Release();
+
+			HRESULT hr;
+			// Меняем размер буффера
+			// Ширина и высота выбираются автоматически из HWND
+			hr = m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+			// Создаём задний буффер
+			ID3D11Texture2D* pBuffer;
+			hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+				(void**)&pBuffer);
+
+			hr = m_pd3dDevice->CreateRenderTargetView(pBuffer, NULL,
+				&m_pRenderTargetView);
+			pBuffer->Release();
+
+			m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
+
+			m_width = width;           // получаем ширину
+			m_height = height;   // и высоту окна
+			
+								 // Настройка вьюпорта
+			D3D11_VIEWPORT vp;
+			vp.Width = m_width;
+			vp.Height = m_height;
+			vp.MinDepth = .0f;
+			vp.MaxDepth = 1.0f;
+			vp.TopLeftX = 0;
+			vp.TopLeftY = 0;
+			m_pImmediateContext->RSSetViewports(1, &vp);
+		}
 	}
 	void Render::BeginFrame()
 	{

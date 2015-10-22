@@ -25,7 +25,7 @@ namespace myD3D11Framework
 		bool resizing;
 	};
 
-	class Window
+	class DLL Window
 	{
 	public:
 		Window();

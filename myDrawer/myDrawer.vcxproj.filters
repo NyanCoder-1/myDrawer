@@ -2,17 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Tools.cpp" />
-    <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="MainRender.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Tools.h" />
-    <ClInclude Include="Buffer.h" />
-    <ClInclude Include="Shader.h" />
     <ClInclude Include="MainRender.h" />
   </ItemGroup>
   <ItemGroup>

@@ -21,14 +21,17 @@ void MouseMove(int x, int y);
 void MouseUp(int x, int y);
 void EndDraw();
 
+#include "MainRender.h"
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	Framework framework;
 
-	MyRender *render = new MyRender();
+	MainRender *render = new MainRender();
 
 	framework.SetRender(render);
 	framework.Init();
+	framework.AddInputListener(new Input(render));
 
 	framework.Run();
 
@@ -113,7 +116,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 
-	switch (message)
+	/*switch (message)
 	{
 	case WM_PAINT:
 		Render();
@@ -152,7 +155,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
+	}*/
 
 	return 0;
 }

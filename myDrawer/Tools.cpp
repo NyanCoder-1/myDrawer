@@ -10,7 +10,7 @@ void DrawLine(int x1, int y1, int x2, int y2) {};
 void EndDraw() {};
 
 
-Shape::Shape() :width(1), End(false)
+Shape::Shape() :width(1), End(false), Changed(true)
 {}
 
 sPencil::sPencil() : is_Drawing(false)
@@ -22,11 +22,15 @@ void sPencil::MouseDown(int x, int y)
 	is_Drawing = true;
 	points.push_back(Point(x, y));
 	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	Changed = true;
 }
 void sPencil::MouseMove(int x, int y)
 {
 	if (is_Drawing)
+	{
 		points.push_back(Point(x, y));
+		Changed = true;
+	}
 }
 void sPencil::MouseUp()
 {
@@ -60,6 +64,7 @@ void sPolyline::MouseDown(int x, int y)
 	}
 	else
 		points.push_back(Point(x, y));
+	Changed = true;
 }
 void sPolyline::MouseMove(int x, int y)
 {
@@ -94,11 +99,15 @@ void sRect::MouseDown(int x, int y)
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
 	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	Changed = true;
 }
 void sRect::MouseMove(int x, int y)
 {
 	if (is_Drawing)
+	{
 		points[1] = Point(x, y);
+		Changed = true;
+	}
 }
 void sRect::MouseUp()
 {
@@ -134,11 +143,15 @@ void sLine::MouseDown(int x, int y)
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
 	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	Changed = true;
 }
 void sLine::MouseMove(int x, int y)
 {
 	if (is_Drawing)
+	{
 		points[1] = Point(x, y);
+		Changed = true;
+	}
 }
 void sLine::MouseUp()
 {
@@ -156,7 +169,6 @@ void sLine::Render()
 {
 	Lines.clear();
 	Lines.push_back(Line(points[0], points[1]));
-	DrawLine(points[0].x, points[0].y, points[1].x, points[1].y);
 }
 
 sRoundRect::sRoundRect()
@@ -174,11 +186,15 @@ void sRoundRect::MouseDown(int x, int y)
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
 	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	Changed = true;
 }
 void sRoundRect::MouseMove(int x, int y)
 {
 	if (is_Drawing)
+	{
 		points[1] = Point(x, y);
+		Changed = true;
+	}
 }
 void sRoundRect::MouseUp()
 {
@@ -241,11 +257,15 @@ void sEllips::MouseDown(int x, int y)
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
 	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	Changed = true;
 }
 void sEllips::MouseMove(int x, int y)
 {
 	if (is_Drawing)
+	{
 		points[1] = Point(x, y);
+		Changed = true;
+	}
 }
 void sEllips::MouseUp()
 {

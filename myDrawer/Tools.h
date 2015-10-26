@@ -41,11 +41,18 @@ public:
 	vector<Line> GetLines() const { return Lines; };
 
 	bool IsEnd() const { return End; };
+	bool IsChanged() {
+		bool result = Changed;
+		Changed = false;
+		return result;
+	};
 
 protected:
 	unsigned char width;
 	int id;
 	bool End;
+
+	bool Changed;
 	
 	vector<Line> Lines;
 };

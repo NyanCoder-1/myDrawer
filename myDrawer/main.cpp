@@ -27,11 +27,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 {
 	Framework framework;
 
-	MainRender *render = new MainRender();
+	FrameworkDesc desc;
+	desc.render = new MainRender();
+	desc.wnd.resizing = true;
 
-	framework.SetRender(render);
-	framework.Init();
-	framework.AddInputListener(new Input(render));
+	framework.Init(desc);
+	framework.AddInputListener(new Input((MainRender*)desc.render));
 
 	framework.Run();
 

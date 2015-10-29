@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <functional>
 
 #include <d3d11_2.h>
 #include <DirectXMath.h>
@@ -20,11 +21,11 @@
 #define _RELEASE(p)		{ if(p){(p)->Release(); (p)=nullptr;} }
 #define _CLOSE(p)		{ if(p){(p)->Close(); delete (p); (p)=nullptr;} }
 
-#include "../myD3D11Framework/myD3D11Framework.h"
+#include "../D3D_Framework/D3D11_Framework.h"
 #ifdef _DEBUG
-#pragma comment(lib, "../Debug/myD3D11Framework.lib")
+#pragma comment(lib, "../Debug/D3D_Framework.lib")
 #else
-#pragma comment(lib, "../Release/myD3D11Framework.lib")
+#pragma comment(lib, "../Release/D3D_Framework.lib")
 #endif
 
-using namespace myD3D11Framework;
+using namespace D3D11Framework;

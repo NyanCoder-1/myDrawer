@@ -17,14 +17,14 @@ sPencil::sPencil() : is_Drawing(false)
 {
 	id = 0;
 }
-void sPencil::MouseDown(int x, int y)
+void sPencil::MouseDown(float x, float y)
 {
 	is_Drawing = true;
 	points.push_back(Point(x, y));
-	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	SetCapture(D3D11Framework::Window::Get()->GetHWND());
 	Changed = true;
 }
-void sPencil::MouseMove(int x, int y)
+void sPencil::MouseMove(float x, float y)
 {
 	if (is_Drawing)
 	{
@@ -39,11 +39,6 @@ void sPencil::MouseUp()
 	End = true;
 }
 
-void sPencil::SetWidth(unsigned char w)
-{
-	width = w;
-}
-
 void sPencil::Render()
 {
 	Lines.clear();
@@ -54,28 +49,16 @@ void sPencil::Render()
 sPolyline::sPolyline()
 {
 	id = 2;
+	points.push_back(Point());
 }
-void sPolyline::MouseDown(int x, int y)
+void sPolyline::MouseDown(float x, float y)
 {
-	if (points.size() > 1 && sqr(x - points[0].x) + sqr(y - points[0].y)<25)
-	{
-		points.push_back(points[0]);
-		EndDraw();
-	}
-	else
-		points.push_back(Point(x, y));
+	points.push_back(Point(x, y));
 	Changed = true;
 }
-void sPolyline::MouseMove(int x, int y)
-{
-}
-void sPolyline::MouseUp()
-{
-}
-
-void sPolyline::SetWidth(unsigned char w)
-{
-	width = w;
+void sPolyline::MouseMove(float x, float y) {
+	points[points.size() - 1] = Point(x, y);
+	Changed = true;
 }
 
 void sPolyline::Render()
@@ -93,15 +76,15 @@ sRect::sRect()
 
 	id = 3;
 }
-void sRect::MouseDown(int x, int y)
+void sRect::MouseDown(float x, float y)
 {
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
-	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	SetCapture(D3D11Framework::Window::Get()->GetHWND());
 	Changed = true;
 }
-void sRect::MouseMove(int x, int y)
+void sRect::MouseMove(float x, float y)
 {
 	if (is_Drawing)
 	{
@@ -116,11 +99,6 @@ void sRect::MouseUp()
 		End = true;
 }
 
-void sRect::SetWidth(unsigned char w)
-{
-	width = w;
-}
-
 void sRect::Render()
 {
 	Lines.clear();
@@ -128,6 +106,13 @@ void sRect::Render()
 	Lines.push_back(Line(Point(points[0].x, points[1].y), Point(points[1].x, points[1].y)));
 	Lines.push_back(Line(Point(points[1].x, points[1].y), Point(points[1].x, points[0].y)));
 	Lines.push_back(Line(Point(points[1].x, points[0].y), Point(points[0].x, points[0].y)));
+	Triangles.clear();
+	vector<Point> newpoints = {
+		Point(min(points[0].x, points[1].x), min(points[0].y, points[1].y)),
+		Point(max(points[0].x, points[1].x), max(points[0].y, points[1].y))
+	};
+	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[0].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[0].x, newpoints[1].y)));
+	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[1].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[1].x, newpoints[1].y)));
 }
 
 sLine::sLine()
@@ -137,15 +122,15 @@ sLine::sLine()
 	points.push_back(Point());
 	id = 1;
 }
-void sLine::MouseDown(int x, int y)
+void sLine::MouseDown(float x, float y)
 {
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
-	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	SetCapture(D3D11Framework::Window::Get()->GetHWND());
 	Changed = true;
 }
-void sLine::MouseMove(int x, int y)
+void sLine::MouseMove(float x, float y)
 {
 	if (is_Drawing)
 	{
@@ -160,11 +145,6 @@ void sLine::MouseUp()
 		End = true;
 }
 
-void sLine::SetWidth(unsigned char w)
-{
-	width = w;
-}
-
 void sLine::Render()
 {
 	Lines.clear();
@@ -176,19 +156,19 @@ sRoundRect::sRoundRect()
 	is_Drawing = false;
 	points.push_back(Point());
 	points.push_back(Point());
-	radius = 20;
+	radius = 0.2f;
 
 	id = 4;
 }
-void sRoundRect::MouseDown(int x, int y)
+void sRoundRect::MouseDown(float x, float y)
 {
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
-	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	SetCapture(D3D11Framework::Window::Get()->GetHWND());
 	Changed = true;
 }
-void sRoundRect::MouseMove(int x, int y)
+void sRoundRect::MouseMove(float x, float y)
 {
 	if (is_Drawing)
 	{
@@ -203,11 +183,7 @@ void sRoundRect::MouseUp()
 		End = true;
 }
 
-void sRoundRect::SetWidth(unsigned char w)
-{
-	width = w;
-}
-void sRoundRect::SetRound(int r)
+void sRoundRect::SetRound(float r)
 {
 	radius = r;
 }
@@ -216,30 +192,47 @@ void sRoundRect::Render()
 {
 	Lines.clear();
 
-	int x1 = min(points[0].x, points[1].x);
-	int x2 = max(points[0].x, points[1].x);
-	int y1 = min(points[0].y, points[1].y);
-	int y2 = max(points[0].y, points[1].y);
-	int r = radius > (x2 - x1 > y2 - y1 ? y2 - y1 : x2 - x1) / 2 ? (x2 - x1 > y2 - y1 ? y2 - y1 : x2 - x1) / 2 : radius;
+	float x1 = min(points[0].x, points[1].x);
+	float x2 = max(points[0].x, points[1].x);
+	float y1 = min(points[0].y, points[1].y);
+	float y2 = max(points[0].y, points[1].y);
+	float r = radius > (x2 - x1 > y2 - y1 ? y2 - y1 : x2 - x1) / 2 ? (x2 - x1 > y2 - y1 ? y2 - y1 : x2 - x1) / 2 : radius;
 	Lines.push_back(Line(Point(x1 + r, y1), Point(x2 - r, y1)));
 	Lines.push_back(Line(Point(x1 + r, y2), Point(x2 - r, y2)));
 	Lines.push_back(Line(Point(x1, y1 + r), Point(x1, y2 - r)));
 	Lines.push_back(Line(Point(x2, y1 + r), Point(x2, y2 - r)));
+
 	x1 += r;
 	x2 -= r;
 	y1 += r;
 	y2 -= r;
-	for (int i = 0; i < 100; i++)
+
+	Triangles.clear();
+
+	Triangles.push_back(Triangle(Point(x1, y1 - r), Point(x2, y1 - r), Point(x1, y2 + r)));
+	Triangles.push_back(Triangle(Point(x1, y2 + r), Point(x2, y1 - r), Point(x2, y2 + r)));
+
+	Triangles.push_back(Triangle(Point(x1 - r, y1), Point(x1, y1), Point(x1 - r, y2)));
+	Triangles.push_back(Triangle(Point(x1 - r, y2), Point(x1, y1), Point(x1, y2)));
+
+	Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + r, y1), Point(x2, y2)));
+	Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + r, y1), Point(x2 + r, y2)));
+	for (int i = 0; i < 101; i++)
 	{
 		float e = (MY_PIDIV2*0.01f);
-		int fx1 = cos(e*(i - 1))*r;
-		int fx2 = cos(e*i)*r;
-		int fy1 = sin(e*(i - 1))*r;
-		int fy2 = sin(e*i)*r;
+		float fx1 = cos(e*(i - 1))*r;
+		float fx2 = cos(e*i)*r;
+		float fy1 = sin(e*(i - 1))*r;
+		float fy2 = sin(e*i)*r;
 		Lines.push_back(Line(Point(x1 - fx1, y1 - fy1), Point(x1 - fx2, y1 - fy2)));
 		Lines.push_back(Line(Point(x1 - fx1, y2 + fy1), Point(x1 - fx2, y2 + fy2)));
 		Lines.push_back(Line(Point(x2 + fx1, y1 - fy1), Point(x2 + fx2, y1 - fy2)));
 		Lines.push_back(Line(Point(x2 + fx1, y2 + fy1), Point(x2 + fx2, y2 + fy2)));
+
+		Triangles.push_back(Triangle(Point(x1, y1), Point(x1 - fx1, y1 - fy1), Point(x1 - fx2, y1 - fy2)));
+		Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + fx2, y1 - fy2), Point(x2 + fx1, y1 - fy1)));
+		Triangles.push_back(Triangle(Point(x1, y2), Point(x1 - fx2, y2 + fy2), Point(x1 - fx1, y2 + fy1)));
+		Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + fx1, y2 + fy1), Point(x2 + fx2, y2 + fy2)));
 	}
 }
 
@@ -251,15 +244,15 @@ sEllips::sEllips()
 
 	id = 5;
 }
-void sEllips::MouseDown(int x, int y)
+void sEllips::MouseDown(float x, float y)
 {
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
-	SetCapture(myD3D11Framework::Window::Get()->GetHWND());
+	SetCapture(D3D11Framework::Window::Get()->GetHWND());
 	Changed = true;
 }
-void sEllips::MouseMove(int x, int y)
+void sEllips::MouseMove(float x, float y)
 {
 	if (is_Drawing)
 	{
@@ -274,19 +267,24 @@ void sEllips::MouseUp()
 		End = true;
 }
 
-void sEllips::SetWidth(unsigned char w)
-{
-	width = w;
-}
-
 void sEllips::Render()
 {
 	Lines.clear();
+	Triangles.clear();
 	for (int i = 1; i < 401; i++)
 	{
-		int x0 = (points[0].x + points[1].x)*0.5f;
-		int y0 = (points[0].y + points[1].y)*0.5f;
+		float minx = min(points[0].x, points[1].x);
+		float miny = min(points[0].y, points[1].y);
+		float maxx = max(points[0].x, points[1].x);
+		float maxy = max(points[0].y, points[1].y);
+		float x0 = (points[0].x + points[1].x)*0.5f;
+		float y0 = (points[0].y + points[1].y)*0.5f;
 		float e = MY_PI * 0.005f;
-		Lines.push_back(Line(Point(x0 + cos(e*i)*(points[0].x - points[1].x)*0.5f, y0 + sin(e*i)*(points[0].y - points[1].y)*0.5f), Point(x0 + cos(e*(i - 1))*(points[0].x - points[1].x)*0.5f, y0 + sin(e*(i - 1))*(points[0].y - points[1].y)*0.5f)));
+		float x1 = x0 + cos(e*i)*(maxx - minx)*0.5f;
+		float y1 = y0 + sin(e*i)*(maxy - miny)*0.5f;
+		float x2 = x0 + cos(e*(i - 1))*(maxx - minx)*0.5f;
+		float y2 = y0 + sin(e*(i - 1))*(maxy - miny)*0.5f;
+		Lines.push_back(Line(Point(x1, y1), Point(x2, y2)));
+		Triangles.push_back(Triangle(Point(x0, y0), Point(x2, y2), Point(x1, y1)));
 	}
 }

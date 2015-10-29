@@ -19,6 +19,7 @@ void ImprovedShape::Draw()
 	if (m_pShape->IsChanged())
 	{
 		vector<Vertex> vlines;
+		vector<Vertex> vtriangles;
 
 		m_pShape->Render();
 		vector<Line> Lines = m_pShape->GetLines();
@@ -27,23 +28,37 @@ void ImprovedShape::Draw()
 			vlines.push_back({ XMFLOAT3(Lines[i].points[0].x, Lines[i].points[0].y, .0f), XMFLOAT4(0.000000000f, 0.000000000f, 0.000000000f, 1.000000000f) });
 			vlines.push_back({ XMFLOAT3(Lines[i].points[1].x, Lines[i].points[1].y, .0f), XMFLOAT4(0.000000000f, 0.000000000f, 0.000000000f, 1.000000000f) });
 		}
+		vector<Triangle> Triangles = m_pShape->GetTriangles();
+		for (int i = 0; i < Triangles.size(); i++)
+		{
+			vtriangles.push_back({ XMFLOAT3(Triangles[i].points[0].x, Triangles[i].points[0].y, .0f), XMFLOAT4(0.500000000f, 0.500000000f, 0.500000000f, 0.500000000f) });
+			vtriangles.push_back({ XMFLOAT3(Triangles[i].points[1].x, Triangles[i].points[1].y, .0f), XMFLOAT4(0.500000000f, 0.500000000f, 0.500000000f, 0.500000000f) });
+			vtriangles.push_back({ XMFLOAT3(Triangles[i].points[2].x, Triangles[i].points[2].y, .0f), XMFLOAT4(0.500000000f, 0.500000000f, 0.500000000f, 0.500000000f) });
+		}
 
-		_RELEASE(m_pVB);
-		m_pVB = Buffer::CreateVertexBuffer(m_pRender->m_pd3dDevice, sizeof(Vertex) * vlines.size(), false, vlines.data());
+		_RELEASE(m_pVBLines);
+		m_pVBLines = Buffer::CreateVertexBuffer(m_pRender->m_pd3dDevice, sizeof(Vertex) * vlines.size(), false, vlines.data());
+		_RELEASE(m_pVBTriangles);
+		m_pVBTriangles = Buffer::CreateVertexBuffer(m_pRender->m_pd3dDevice, sizeof(Vertex) * vtriangles.size(), false, vtriangles.data());
 
-		size = vlines.size();
+		lsize = vlines.size();
+		tsize = vtriangles.size();
 	}
 
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
-	m_pRender->m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVB, &stride, &offset);
+	m_pRender->m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVBTriangles, &stride, &offset);
+	m_pRender->m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pRender->m_pImmediateContext->Draw(tsize, 0);
+	m_pRender->m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVBLines, &stride, &offset);
 	m_pRender->m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	m_pRender->m_pImmediateContext->Draw(size, 0);
+	m_pRender->m_pImmediateContext->Draw(lsize, 0);
 }
 void ImprovedShape::Close()
 {
 	_DELETE(m_pShape);
-	_RELEASE(m_pVB);
+	_RELEASE(m_pVBLines);
+	_RELEASE(m_pVBTriangles);
 }
 
 void ImprovedShape::SetShape(Shape *shape)
@@ -62,12 +77,13 @@ MainRender::MainRender()
 
 	m_pShapes.push_back(new ImprovedShape(this, new sPencil()));
 	
-	m_GUIshow = false;
+	m_GUIshow = true;
+	m_isMoving = false;
 }
 
-bool MainRender::Init(HWND hwnd)
+bool MainRender::Init()
 {
-	m_pShader = new Shader(m_pd3dDevice, m_pImmediateContext);
+	m_pShader = new Shader(this);
 	m_pShader->AddInputElementDesc("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_pShader->AddInputElementDesc("COLOR", DXGI_FORMAT_R32G32B32A32_FLOAT);
 	if (!m_pShader->CreateShader(L"data\\shaders\\vsMainShader.hlsl", L"data\\shaders\\psMainShader.hlsl"))
@@ -75,13 +91,23 @@ bool MainRender::Init(HWND hwnd)
 
 	m_WVP = Buffer::CreateConstantBuffer(m_pd3dDevice, sizeof(Const), false);
 
+	m_pnz = XMFLOAT3(0.0f, 0.0f, float(min(m_width, m_height)) / 2);
+
+	m_pbmf = new BitmapFont(this);
+	m_pbmf->Init("font.fnt");
+	m_ptxt = new Text(this, m_pbmf);
+	m_ptxt->Init(L"Test text", false, 9);
+	m_pimg = new Image(this);
+	m_pimg->Init(L"squirtle.png", 50, 50);
+
+	TurnOnAlphaBlending();
+
 	InitBuffers();
 
 	return true;
 }
-void MainRender::Resize(int height, int width)
+void MainRender::Resize()
 {
-	Render::Resize(height, width);
 	InitBuffers();
 }
 void MainRender::InitBuffers()
@@ -175,29 +201,36 @@ void MainRender::InitBuffers()
 		m_pToolBar[0]->m_pShape->MouseMove(x0 + 24, y0 - 12);
 		m_pToolBar[0]->m_pShape->MouseMove(x0 - 1, y0 + 13);
 		m_pToolBar[0]->m_pShape->MouseMove(x0, y0 + 25);
+		m_pToolBar[0]->m_pShape->MouseUp();
 
 		x0 = (m_width / 6.0f + m_width / 6.0f * 2)*0.5f; y0 = m_height - 50;
 		m_pToolBar[1]->m_pShape->MouseDown(x0 - 25, y0 + 12);
 		m_pToolBar[1]->m_pShape->MouseMove(x0 + 25, y0 - 12);
+		m_pToolBar[1]->m_pShape->MouseUp();
 
 		x0 = (m_width / 6.0f * 2 + m_width / 6.0f * 3)*0.5f; y0 = m_height - 50;
+		m_pToolBar[2]->m_pShape->MouseMove(x0 - 25, y0 - 12);
 		m_pToolBar[2]->m_pShape->MouseDown(x0 - 25, y0 - 12);
 		m_pToolBar[2]->m_pShape->MouseDown(x0 + 12, y0 - 25);
 		m_pToolBar[2]->m_pShape->MouseDown(x0 - 13, y0 + 15);
 		m_pToolBar[2]->m_pShape->MouseDown(x0 + 25, y0 + 25);
+		m_pToolBar[2]->m_pShape->MouseUp();
 
 		x0 = (m_width / 6.0f * 3 + m_width / 6.0f * 4)*0.5f; y0 = m_height - 50;
 		m_pToolBar[3]->m_pShape->MouseDown(x0 - 40, y0 - 25);
 		m_pToolBar[3]->m_pShape->MouseMove(x0 + 40, y0 + 25);
+		m_pToolBar[3]->m_pShape->MouseUp();
 
 		x0 = (m_width / 6.0f * 4 + m_width / 6.0f * 5)*0.5f; y0 = m_height - 50;
 		m_pToolBar[4]->m_pShape->MouseDown(x0 - 40, y0 - 25);
 		m_pToolBar[4]->m_pShape->MouseMove(x0 + 40, y0 + 25);
 		m_pToolBar[4]->m_pShape->SetRound(10);
+		m_pToolBar[4]->m_pShape->MouseUp();
 
 		x0 = (m_width / 6.0f * 5 + m_width / 6.0f * 6)*0.5f; y0 = m_height - 50;
 		m_pToolBar[5]->m_pShape->MouseDown(x0 - 40, y0 - 25);
 		m_pToolBar[5]->m_pShape->MouseMove(x0 + 40, y0 + 25);
+		m_pToolBar[5]->m_pShape->MouseUp();
 	}
 	else
 	{
@@ -271,16 +304,19 @@ bool MainRender::Draw()
 
 	Const cb;
 	ZeroMemory(&cb, sizeof(Const));
-	cb.WVP = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(0.0f, m_width, m_height, .0f, .0f, 1.0f));
+	cb.WVP = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(-(int)m_width / 2 / m_pnz.z - m_pnz.x, m_width / 2 / m_pnz.z - m_pnz.x, m_height / 2 / m_pnz.z - m_pnz.y, -(int)m_height / 2 / m_pnz.z - m_pnz.y, .0f, 1.0f));
 	m_pImmediateContext->UpdateSubresource(m_WVP, 0, NULL, &cb, 0, 0);
 	m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_WVP);
 
 	for (ImprovedShape *s : m_pShapes)
 		s->Draw();
 
+	ZeroMemory(&cb, sizeof(Const));
+	cb.WVP = XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(0.0f, m_width, m_height, .0f, .0f, 1.0f));
+	m_pImmediateContext->UpdateSubresource(m_WVP, 0, NULL, &cb, 0, 0);
+	m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_WVP);
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
-	
 	m_pImmediateContext->IASetVertexBuffers(0, 1, &m_GUIvb, &stride, &offset);
 	m_pImmediateContext->IASetIndexBuffer(m_GUIib, DXGI_FORMAT_R32_UINT, 0);
 	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -290,11 +326,17 @@ bool MainRender::Draw()
 		for (ImprovedShape *s : m_pToolBar)
 			s->Draw();
 
+	m_ptxt->Draw(0.0f, 0.0f, 0.0f, 0, 0);
+	m_pimg->Draw(50, 50);
+
 	return true;
 }
 
 void MainRender::Close()
 {
+	_CLOSE(m_pimg);
+	_CLOSE(m_ptxt);
+	_CLOSE(m_pbmf);
 	_CLOSE(m_pShader);
 	_RELEASE(m_GUIvb);
 	_RELEASE(m_GUIib);
@@ -340,7 +382,7 @@ bool Input::MousePressed(const MouseEventClick &arg)
 			}
 		}
 
-		m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->MouseDown(arg.x, arg.y);
+		m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->MouseDown(float(arg.x - (float)m_render->m_width / 2) / m_render->m_pnz.z - m_render->m_pnz.x, float(arg.y - (float)m_render->m_height / 2) / m_render->m_pnz.z - m_render->m_pnz.y);
 
 		if (m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->IsEnd())
 		{
@@ -353,11 +395,23 @@ bool Input::MousePressed(const MouseEventClick &arg)
 		m_render->m_pShapes.push_back(new ImprovedShape(m_render));
 		m_render->SetCurrentTool(m_render->m_pShapes[m_render->m_pShapes.size() - 2]->m_pShape->GetID());
 	}
+	else if (arg.btn == MOUSE_MIDDLE)
+	{
+		m_render->m_isMoving = true;
+		m_render->x0 = arg.x;
+		m_render->y0 = arg.y;
+	}
 	return true;
 }
 #undef in
 bool Input::MouseReleased(const MouseEventClick &arg)
 {
+	if (m_render->m_isMoving)
+	{
+		if (arg.btn == eMouseKeyCodes::MOUSE_MIDDLE)
+			m_render->m_isMoving = false;
+		return true;
+	}
 	m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->MouseUp();
 	if (m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->IsEnd())
 	{
@@ -368,6 +422,22 @@ bool Input::MouseReleased(const MouseEventClick &arg)
 }
 bool Input::MouseMove(const MouseEvent &arg)
 {
-	m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->MouseMove(arg.x, arg.y);
+	if (m_render->m_isMoving)
+	{
+		m_render->m_pnz.x += (arg.x - m_render->x0) / m_render->m_pnz.z;
+		m_render->m_pnz.y += (arg.y - m_render->y0) / m_render->m_pnz.z;
+		m_render->x0 = arg.x;
+		m_render->y0 = arg.y;
+		return true;
+	}
+	m_render->m_pShapes[m_render->m_pShapes.size() - 1]->m_pShape->MouseMove(float(arg.x - (int)m_render->m_width / 2) / m_render->m_pnz.z - m_render->m_pnz.x, float(arg.y - (int)m_render->m_height / 2) / m_render->m_pnz.z - m_render->m_pnz.y);
+	return true;
+}
+bool Input::KeyPressed(const KeyEvent &arg)
+{
+	if (arg.code == KEY_ADD)
+		m_render->m_pnz.z *= 2;
+	else if (arg.code == KEY_SUBTRACT)
+		m_render->m_pnz.z *= 0.5f;
 	return true;
 }

@@ -3,9 +3,9 @@
 
 typedef struct Point
 {
-	Point(int x, int y) :x(x), y(y) {}
+	Point(float x, float y) :x(x), y(y) {}
 	Point() { Point(0, 0); };
-	int x, y;
+	float x, y;
 } Point;
 
 typedef struct Line
@@ -23,22 +23,41 @@ typedef struct Line
 	Point points[2];
 } Line;
 
+typedef struct Triangle
+{
+	Triangle()
+	{
+		points[0] = Point();
+		points[1] = Point();
+		points[2] = Point();
+	}
+	Triangle(Point point1, Point point2, Point point3)
+	{
+		points[0] = point1;
+		points[1] = point2;
+		points[2] = point3;
+	};
+	Point points[3];
+} Triangle;
+
 class Shape
 {
 public:
 	Shape();
 
-	virtual void MouseDown(int x, int y) = 0;
-	virtual void MouseMove(int x, int y) = 0;
-	virtual void MouseUp() = 0;
+	virtual void MouseDown(float x, float y) {};
+	virtual void MouseMove(float x, float y) {};
+	virtual void MouseUp() {};
 
-	virtual void SetWidth(unsigned char w) = 0;
-	virtual void SetRound(int r) = 0;
+	virtual void SetWidth(float w) { width = w; Changed = true; };
+	virtual void SetRound(float r) {};
 
 	virtual void Render() = 0;
 
+	float GetWidth() const { return width; };
 	int GetID() const { return id; };
-	vector<Line> GetLines() const { return Lines; };
+	vector<Line> GetLines() const { return Lines; }; 
+	vector<Triangle> GetTriangles() const { return Triangles; };
 
 	bool IsEnd() const { return End; };
 	bool IsChanged() {
@@ -48,13 +67,14 @@ public:
 	};
 
 protected:
-	unsigned char width;
+	float width;
 	int id;
 	bool End;
 
 	bool Changed;
 	
 	vector<Line> Lines;
+	vector<Triangle> Triangles;
 };
 
 
@@ -63,12 +83,9 @@ class sPencil : public Shape
 public:
 	sPencil();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 	void MouseUp() override;
-
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override {};
 
 	void Render() override;
 protected:
@@ -81,12 +98,8 @@ class sPolyline : public Shape
 public:
 	sPolyline();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
-	void MouseUp() override;
-
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override {};
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 
 	void Render() override;
 protected:
@@ -98,12 +111,9 @@ class sRect : public Shape
 public:
 	sRect();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 	void MouseUp() override;
-
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override {};
 
 	void Render() override;
 protected:
@@ -116,12 +126,9 @@ class sLine : public Shape
 public:
 	sLine();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 	void MouseUp() override;
-
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override {};
 
 	void Render() override;
 protected:
@@ -134,18 +141,17 @@ class sRoundRect : public Shape
 public:
 	sRoundRect();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 	void MouseUp() override;
 
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override;
+	void SetRound(float r) override;
 
 	void Render() override;
 protected:
 	std::vector<Point> points;
 	bool is_Drawing;
-	int radius;
+	float radius;
 };
 
 class sEllips : public Shape
@@ -153,12 +159,9 @@ class sEllips : public Shape
 public:
 	sEllips();
 
-	void MouseDown(int x, int y) override;
-	void MouseMove(int x, int y) override;
+	void MouseDown(float x, float y) override;
+	void MouseMove(float x, float y) override;
 	void MouseUp() override;
-
-	void SetWidth(unsigned char w) override;
-	void SetRound(int r) override {};
 
 	void Render() override;
 protected:

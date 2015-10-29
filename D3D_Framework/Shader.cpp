@@ -1,10 +1,10 @@
-#include "pch.h"
+#include "stdafx.h"
 #include "Shader.h"
 #include "macros.h"
 #include "Log.h"
 #include "WICTextureLoader.h"
 
-using namespace myD3D11Framework;
+using namespace D3D11Framework;
 
 #define MAXLAYOUT 8
 

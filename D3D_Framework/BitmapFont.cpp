@@ -149,8 +149,8 @@ void BitmapFont::BuildVertexArray(VertexFont *vertex, int numvert, const wchar_t
 	if ( numLetters*4 > numvert )
 		numLetters = numvert/4;
 
-	float drawX = (float) m_render->m_width/2 * -1;
-	float drawY = (float) m_render->m_height/2;
+	float drawX = 0;
+	float drawY = 0;
 
 	int index = 0;		
 	for(int i=0; i<numLetters; i++)
@@ -164,8 +164,8 @@ void BitmapFont::BuildVertexArray(VertexFont *vertex, int numvert, const wchar_t
 
 		float left = drawX + OffsetX;
 		float right = left + Width;
-		float top = drawY - OffsetY;
-		float bottom = top - Height;
+		float top = drawY + OffsetY;
+		float bottom = top + Height;
 		float lefttex = CharX/m_WidthTex;
 		float righttex = (CharX+Width)/m_WidthTex;
 		float toptex = CharY/m_HeightTex;
@@ -198,7 +198,7 @@ void BitmapFont::Draw(unsigned int index,float r, float g, float b, float x, flo
 
 void BitmapFont::m_SetShaderParameters(float r, float g, float b, float x, float y)
 {
-	XMMATRIX objmatrix = XMMatrixTranslation(x,-y,0);
+	XMMATRIX objmatrix = XMMatrixTranslation(x, y,0);
 	XMMATRIX wvp = objmatrix*m_render->m_Ortho;
 	ConstantBuffer cb;
 	cb.WVP = XMMatrixTranspose(wvp);
@@ -219,4 +219,25 @@ void BitmapFont::Close()
 	_RELEASE(m_pixelBuffer);
 	_CLOSE(m_shader);
 
+}
+
+int BitmapFont::GetWidth(const wchar_t *sentence)
+{
+	int numLetters = (int)wcslen(sentence);
+	float drawX = 0;
+	for (int i = 0; i < numLetters; i++)
+	{
+		drawX += m_Chars[sentence[i]].xAdv;
+	}
+	return drawX;
+}
+int BitmapFont::GetHeight(const wchar_t *sentence)
+{
+	int numLetters = (int)wcslen(sentence);
+	float drawY = 0;
+	for (int i = 0; i < numLetters; i++)
+	{
+		drawY = max(drawY, m_Chars[sentence[i]].yOff);
+	}
+	return drawY;
 }

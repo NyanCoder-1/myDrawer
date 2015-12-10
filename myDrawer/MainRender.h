@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Controls.h"
+#include "Shapes.h"
 #include "Tools.h"
 
 
@@ -7,6 +9,9 @@ class MainRender: public Render
 {
 	friend class ImprovedShape;
 	friend class Input;
+	friend class Control;
+	friend class BMButton;
+	friend class HoverBox;
 public:
 	MainRender();
 	bool Init() override;
@@ -16,25 +21,34 @@ public:
 
 	void SetCurrentTool(byte t);
 
-	void InitBuffers();
+	void UpdatePos();
 
 private:
-	int cindices;
+	/// «десь € объ€влю
+	void InitializeControls(void);
+	HidingTab *m_pHidingTab;
+	CustomImgRadioButtons *m_pToolsChoose;
+	HScrollBar *m_pDrawingAreaHScrollBar;
+	VScrollBar *m_pDrawingAreaVScrollBar;
+	HoverBox *m_pColorChooser;
+
 	bool m_GUIshow;
 	XMFLOAT3 m_pnz;// x, y, zoom
+	XMFLOAT4 m_MinXYMaxXY;
 
-	ID3D11Buffer *m_GUIvb;
-	ID3D11Buffer *m_GUIib;
 	ID3D11Buffer *m_WVP;
 	D3D11Framework::Shader *m_pShader;
-	Text *m_ptxt;
-	Image *m_pimg;
-	BitmapFont *m_pbmf;
+	vector<Control*> m_controls;
 	bool m_isMoving;
-	int x0, y0;
+	int x0, y0, m_CurrentTool;
 
-	vector<ImprovedShape*> m_pShapes;
-	vector<ImprovedShape*> m_pToolBar;
+	BitmapFont *m_pfont;
+	Text *m_ptxt;
+
+	vector<Tools*> tools;
+	Tools* currtool;
+
+	vector<Shape*> m_pShapes;
 };
 
 class ImprovedShape

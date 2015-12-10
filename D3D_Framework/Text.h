@@ -19,6 +19,8 @@ namespace D3D11Framework
 		void Close();
 
 		bool SetText(const std::wstring &text);
+		int GetWidth(const std::wstring &text);
+		int GetHeight(const std::wstring &text);
 
 	private:
 		bool m_InitBuffers(const std::wstring &text);

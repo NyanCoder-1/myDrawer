@@ -215,7 +215,21 @@ bool Render::m_createdepthstencil()
 
 bool Render::m_createblendingstate()
 {
-	D3D11_BLEND_DESC blendStateDescription;
+	D3D11_BLEND_DESC blendStateDescription =
+	{
+		false,
+		false,
+		{
+			true,
+			D3D11_BLEND_SRC_ALPHA,
+		D3D11_BLEND_INV_SRC_ALPHA,
+		D3D11_BLEND_OP_ADD,
+		D3D11_BLEND_ZERO,
+		D3D11_BLEND_ZERO,
+		D3D11_BLEND_OP_ADD,
+		D3D11_COLOR_WRITE_ENABLE_ALL
+		}
+	};/*;
 	ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
 	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
 	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
@@ -224,7 +238,7 @@ bool Render::m_createblendingstate()
 	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;*/
 	HRESULT hr = m_pd3dDevice->CreateBlendState(&blendStateDescription, &m_pAlphaEnableBlendingState);
 	if( FAILED(hr) )
 		return false;
@@ -241,7 +255,7 @@ void Render::m_initmatrix()
 {
 	float aspect = (float)m_width/(float)m_height;
 	m_Projection = XMMatrixPerspectiveFovLH( 0.4f*3.14f, aspect, 1.0f, 1000.0f);
-	m_Ortho = XMMatrixOrthographicLH((float)m_width, (float)m_height, 0.0f, 1.0f);
+	m_Ortho = XMMatrixOrthographicOffCenterLH(0.0f, (float)m_width, (float)m_height, 0.0f, 0.0f, 1.0f);
 }
 
 void Render::BeginFrame()

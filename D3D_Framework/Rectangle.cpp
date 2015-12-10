@@ -1,16 +1,18 @@
 #include "stdafx.h"
-#include "Image.h"
+#include "Rectangle.h"
 #include "Shader.h"
 #include "macros.h"
 #include "Log.h"
 #include "Buffer.h"
+
+
 
 using namespace D3D11Framework;
 
 struct Vertex
 {
 	XMFLOAT3 pos;
-	XMFLOAT2 tex;
+	XMFLOAT4 color;
 };
 
 struct ConstantBuffer
@@ -18,68 +20,67 @@ struct ConstantBuffer
 	XMMATRIX Ortho;
 };
 
-Image::Image(Render *render)
+Rectangle::Rectangle(Render *render)
 {
 	m_render = render;
 	m_vertexBuffer = nullptr;
 	m_indexBuffer = nullptr;
 	m_constantBuffer = nullptr;
 	m_shader = nullptr;
+	m_color = XMFLOAT4();
 }
 
-bool Image::Init(const wchar_t *textureFilename, float bitmapWidth, float bitmapHeight)
+bool Rectangle::Init(float Width, float Height)
 {
-	m_bitmapWidth = bitmapWidth;
-	m_bitmapHeight = bitmapHeight;
+	m_Width = Width;
+	m_Height = Height;
 
-	if( !m_InitBuffers() )
+	if (!m_InitBuffers())
 		return false;
 
 	m_shader = new Shader(m_render);
 	if (!m_shader)
 		return false;
 
-	if (!m_shader->LoadTexture(textureFilename))
-		return false;
 	m_shader->AddInputElementDesc("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_shader->AddInputElementDesc("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	if ( !m_shader->CreateShader(L"image.vs", L"image.ps") )
+	m_shader->AddInputElementDesc("COLOR", DXGI_FORMAT_R32G32B32A32_FLOAT);
+	if (!m_shader->CreateShader(L"data\\shaders\\vsMainShader.hlsl", L"data\\shaders\\psMainShader.hlsl"))
 		return false;
 
 	return true;
 }
-bool Image::SetSize(float bitmapWidth, float bitmapHeight)
+bool Rectangle::SetSize(float Width, float Height)
 {
-	m_bitmapWidth = bitmapWidth;
-	m_bitmapHeight = bitmapHeight;
+	m_Width = Width;
+	m_Height = Height;
 
 	if (!m_InitBuffers())
 		return false;
 	return true;
 }
 
-bool Image::m_InitBuffers()
+bool Rectangle::m_InitBuffers()
 {
 	Vertex vertices[4];
 
 	float left = 0.0f;
-	float right = m_bitmapWidth;
+	float right = m_Width;
 	float top = 0.0f;
-	float bottom = m_bitmapHeight;
+	float bottom = m_Height;
 
 	vertices[0].pos = XMFLOAT3(left, top, 0.0f);
-	vertices[0].tex = XMFLOAT2(0.0f, 0.0f);
+	vertices[0].color = m_color;
 
 	vertices[1].pos = XMFLOAT3(right, bottom, 0.0f);
-	vertices[1].tex = XMFLOAT2(1.0f, 1.0f);
+	vertices[1].color = m_color;
 
 	vertices[2].pos = XMFLOAT3(left, bottom, 0.0f);
-	vertices[2].tex = XMFLOAT2(0.0f, 1.0f);
+	vertices[2].color = m_color;
 
 	vertices[3].pos = XMFLOAT3(right, top, 0.0f);
-	vertices[3].tex = XMFLOAT2(1.0f, 0.0f);
+	vertices[3].color = m_color;
 
-	unsigned long indices[6] = 
+	unsigned long indices[6] =
 	{
 		0,1,2,
 		0,3,1
@@ -89,11 +90,11 @@ bool Image::m_InitBuffers()
 	_RELEASE(m_indexBuffer);
 	_RELEASE(m_constantBuffer);
 
-	m_vertexBuffer = Buffer::CreateVertexBuffer(m_render->m_pd3dDevice, sizeof(Vertex)*4, false, &vertices);
+	m_vertexBuffer = Buffer::CreateVertexBuffer(m_render->m_pd3dDevice, sizeof(Vertex) * 4, false, &vertices);
 	if (!m_vertexBuffer)
 		return false;
 
-	m_indexBuffer = Buffer::CreateIndexBuffer(m_render->m_pd3dDevice, sizeof(unsigned long)*6, false, &indices);
+	m_indexBuffer = Buffer::CreateIndexBuffer(m_render->m_pd3dDevice, sizeof(unsigned long) * 6, false, &indices);
 	if (!m_indexBuffer)
 		return false;
 
@@ -104,40 +105,30 @@ bool Image::m_InitBuffers()
 	return true;
 }
 
-void Image::Draw(float positionX, float positionY)
+void Rectangle::Draw(float positionX, float positionY)
 {
-	m_RenderBuffers();
 	m_SetShaderParameters(positionX, positionY);
-	m_RenderShader();
-}
-
-void Image::m_RenderBuffers()
-{
-	unsigned int stride = sizeof(Vertex); 
+	m_shader->Draw();
+	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
 	m_render->m_pImmediateContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 	m_render->m_pImmediateContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	m_render->m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_render->m_pImmediateContext->DrawIndexed(6, 0, 0);
 }
 
-void Image::m_SetShaderParameters(float x, float y)
-{	
+void Rectangle::m_SetShaderParameters(float x, float y)
+{
 	XMMATRIX objmatrix = XMMatrixTranslation(x, y, 0.0f);
 	XMMATRIX wvp = objmatrix*m_render->m_Ortho;
 	ConstantBuffer cb;
 	cb.Ortho = XMMatrixTranspose(wvp);
-	m_render->m_pImmediateContext->UpdateSubresource( m_constantBuffer, 0, NULL, &cb, 0, 0 );
+	m_render->m_pImmediateContext->UpdateSubresource(m_constantBuffer, 0, NULL, &cb, 0, 0);
 
 	m_render->m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_constantBuffer);
 }
 
-void Image::m_RenderShader()
-{
-	m_shader->Draw();
-	m_render->m_pImmediateContext->DrawIndexed(6, 0, 0);
-}
-
-void Image::Close()
+void Rectangle::Close()
 {
 	_RELEASE(m_vertexBuffer);
 	_RELEASE(m_indexBuffer);

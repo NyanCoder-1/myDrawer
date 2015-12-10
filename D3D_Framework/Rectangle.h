@@ -1,36 +1,37 @@
 #pragma once
-
 #include "Render.h"
 
 namespace D3D11Framework
 {
 //------------------------------------------------------------------
-	
-	class DLL Image
+
+	class DLL Rectangle
 	{
 	public:
-		Image(Render *render);
+		Rectangle(Render *render);
 
-		bool Init(const wchar_t *name, float bitmapWidth, float bitmapHeight);
+		bool Init(float Width, float Height);
 		void Draw(float positionX, float positionY);
 		void Close();
-		bool SetSize(float bitmapWidth, float bitmapHeight);
-		XMFLOAT2 GetSize() const { return XMFLOAT2(m_bitmapWidth, m_bitmapHeight); };
 
-	private:
+		bool SetSize(float Width, float Height);
+		void SetColor(XMFLOAT4 color) { m_color = color; m_InitBuffers(); };
+		XMFLOAT2 GetSize() const { return XMFLOAT2(m_Width, m_Height); };
+
+	protected:
 		bool m_InitBuffers();
-		void m_RenderBuffers();
 		void m_SetShaderParameters(float x, float y);
-		void m_RenderShader();
 
 		Render *m_render;
-		
-		ID3D11Buffer *m_vertexBuffer; 
+
+		ID3D11Buffer *m_vertexBuffer;
 		ID3D11Buffer *m_indexBuffer;
 		ID3D11Buffer *m_constantBuffer;
 		Shader *m_shader;
 
-		float m_bitmapWidth, m_bitmapHeight;
+		XMFLOAT4 m_color;
+
+		float m_Width, m_Height;
 	};
 
 //------------------------------------------------------------------

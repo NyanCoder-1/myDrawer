@@ -119,3 +119,12 @@ bool Text::SetText(const std::wstring &text)
 	m_numdrawindex = text.size()*6;
 	return m_updatebuffer(text);
 }
+
+int Text::GetWidth(const std::wstring &text)
+{
+	return m_font->GetWidth(text.c_str());
+}
+int Text::GetHeight(const std::wstring &text)
+{
+	return m_font->GetHeight(text.c_str());
+}

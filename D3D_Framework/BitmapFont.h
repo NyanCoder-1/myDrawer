@@ -43,6 +43,8 @@ namespace D3D11Framework
 		void Draw(unsigned int index, float r, float g, float b, float x, float y);
 		void BuildVertexArray(VertexFont *vert, int numvert, const wchar_t *sentence);
 		void Close();
+		int GetWidth(const wchar_t *sentence);
+		int GetHeight(const wchar_t *sentence);
 		
 	private:
 		bool m_parse(char *fontFilename);

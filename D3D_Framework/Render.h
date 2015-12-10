@@ -7,6 +7,7 @@ namespace D3D11Framework
 	class DLL Render
 	{
 		friend class StaticMesh;
+		friend class Rectangle;
 		friend class Image;
 		friend class BitmapFont;
 		friend class Text;

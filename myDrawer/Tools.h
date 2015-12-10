@@ -1,170 +1,100 @@
 #pragma once
 
+#include "Shapes.h"
 
-typedef struct Point
+enum MBtn
 {
-	Point(float x, float y) :x(x), y(y) {}
-	Point() { Point(0, 0); };
-	float x, y;
-} Point;
+	BtnLeft = 0,
+	BtnMiddle,
+	BtnRight
+};
 
-typedef struct Line
-{
-	Line()
-	{
-		points[0] = Point();
-		points[1] = Point();
-	}
-	Line(Point point1, Point point2)
-	{
-		points[0] = point1;
-		points[1] = point2;
-	};
-	Point points[2];
-} Line;
-
-typedef struct Triangle
-{
-	Triangle()
-	{
-		points[0] = Point();
-		points[1] = Point();
-		points[2] = Point();
-	}
-	Triangle(Point point1, Point point2, Point point3)
-	{
-		points[0] = point1;
-		points[1] = point2;
-		points[2] = point3;
-	};
-	Point points[3];
-} Triangle;
-
-class Shape
+class Tools
 {
 public:
-	Shape();
+	virtual bool MouseDown(MBtn button, float x, float y) { return 0; };
+	virtual bool MouseMove(float x, float y) { return 0; };
+	virtual bool MouseUp() { return 0; };
 
-	virtual void MouseDown(float x, float y) {};
-	virtual void MouseMove(float x, float y) {};
-	virtual void MouseUp() {};
+	virtual void CreateShape() {};
 
-	virtual void SetWidth(float w) { width = w; Changed = true; };
-	virtual void SetRound(float r) {};
-
-	virtual void Render() = 0;
-
-	float GetWidth() const { return width; };
-	int GetID() const { return id; };
-	vector<Line> GetLines() const { return Lines; }; 
-	vector<Triangle> GetTriangles() const { return Triangles; };
-
-	bool IsEnd() const { return End; };
-	bool IsChanged() {
-		bool result = Changed;
-		Changed = false;
-		return result;
-	};
+	void SetZoomVar(float &zoom) { Zoom = &zoom; };
+	void SetPosVars(float &x, float &y) { X = &x; Y = &y; };
+	void SetScreenSize(unsigned int &width, unsigned int &height) { Width = &width; Height = &height; };
 
 protected:
-	float width;
-	int id;
-	bool End;
+	float *Zoom, *X, *Y;
+	unsigned int *Width, *Height;
+	vector<Shape*> *Shapes;
+};
 
-	bool Changed;
-	
-	vector<Line> Lines;
-	vector<Triangle> Triangles;
+class tHand : public Tools
+{
+public:
+	tHand(float &x, float &y, float &zoom) { SetPosVars(x, y); SetZoomVar(zoom); };
+
+	virtual bool MouseDown(MBtn button, float x, float y) override;
+	virtual bool MouseMove(float x, float y) override;
+	virtual bool MouseUp() override;
+private:
+	bool isMoving;
+	float prevX, prevY;
+};
+
+class tShape : public Tools
+{
+public:
+	tShape(float &x, float &y, float &zoom, vector<Shape*> &shapes) { SetPosVars(x, y); SetZoomVar(zoom); Shapes = &shapes; };
+
+	virtual bool MouseDown(MBtn button, float x, float y) override;
+	virtual bool MouseMove(float x, float y) override;
+	virtual bool MouseUp() override;
+
+	virtual void CreateShape() {};
+};
+
+class tZoom : public Tools
+{
+public:
+	tZoom(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom) { SetZoomVar(zoom); SetPosVars(x, y); SetScreenSize(width, height); };
+
+	virtual bool MouseDown(MBtn button, float x, float y) override;
 };
 
 
-class sPencil : public Shape
+class tPencil : public tShape
 {
 public:
-	sPencil();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-	void MouseUp() override;
-
-	void Render() override;
-protected:
-	bool is_Drawing;
-	std::vector<Point> points;
+	tPencil(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };
-
-class sPolyline : public Shape
+class tLine : public tShape
 {
 public:
-	sPolyline();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-
-	void Render() override;
-protected:
-	std::vector<Point> points;
+	tLine(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };
-
-class sRect : public Shape
+class tPolyline : public tShape
 {
 public:
-	sRect();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-	void MouseUp() override;
-
-	void Render() override;
-protected:
-	std::vector<Point> points;
-	bool is_Drawing;
+	tPolyline(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };
-
-class sLine : public Shape
+class tRectangle : public tShape
 {
 public:
-	sLine();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-	void MouseUp() override;
-
-	void Render() override;
-protected:
-	std::vector<Point> points;
-	bool is_Drawing;
+	tRectangle(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };
-
-class sRoundRect : public Shape
+class tRoundedRect : public tShape
 {
 public:
-	sRoundRect();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-	void MouseUp() override;
-
-	void SetRound(float r) override;
-
-	void Render() override;
-protected:
-	std::vector<Point> points;
-	bool is_Drawing;
-	float radius;
+	tRoundedRect(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };
-
-class sEllips : public Shape
+class tEllips : public tShape
 {
 public:
-	sEllips();
-
-	void MouseDown(float x, float y) override;
-	void MouseMove(float x, float y) override;
-	void MouseUp() override;
-
-	void Render() override;
-protected:
-	std::vector<Point> points;
-	bool is_Drawing;
+	tEllips(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	virtual void CreateShape() override;
 };

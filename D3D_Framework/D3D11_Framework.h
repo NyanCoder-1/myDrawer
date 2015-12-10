@@ -13,3 +13,4 @@
 #include "Image.h"
 #include "BitmapFont.h"
 #include "Text.h"
+#include "Rectangle.h"

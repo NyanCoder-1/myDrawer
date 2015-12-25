@@ -47,12 +47,14 @@ public:
 	void SetImg(wchar_t *imgstr, float width, float height);
 	void Draw() override;
 	bool MouseDown(const MouseEventClick &arg) override;
+	bool MouseUp(const MouseEventClick &arg) override;
 	void Close() override {
 		_CLOSE(m_img);
 	};
 	
 	Event OnClick;
 protected:
+	bool m_isClicking;
 	Image *m_img;
 };
 class Button : public Control
@@ -62,6 +64,7 @@ public:
 	void SetCaption(const wstring text) override;
 	void Draw() override;
 	bool MouseDown(const MouseEventClick &arg) override;
+	bool MouseUp(const MouseEventClick &arg) override;
 	void Close() override {
 		for (Image * pimg : m_imgs)
 			_CLOSE(pimg);
@@ -72,6 +75,7 @@ public:
 
 	Event OnClick;
 protected:
+	bool m_isClicking;
 	vector<Image*> m_imgs;
 	BitmapFont *m_pfont;
 	Text *m_ptxt;
@@ -83,6 +87,8 @@ public:
 	HidingTab(MainRender *render);
 	void Draw() override;
 	bool MouseDown(const MouseEventClick &arg) override;
+	bool MouseMove(const MouseEvent &arg) override;
+	bool MouseUp(const MouseEventClick &arg) override;
 	void Close() override {
 		for (Image * pimg : m_imgs)
 			_CLOSE(pimg);
@@ -94,6 +100,7 @@ public:
 
 	Controls Controls;
 protected:
+	bool m_isButtonClicking;
 	bool m_isHide;
 	vector<Image*> m_imgs;
 };

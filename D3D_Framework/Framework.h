@@ -35,6 +35,7 @@ namespace D3D11Framework
 		InputMgr *m_input;
 		Log m_log;
 		bool m_init;		// если было инициализировано
+		bool m_isRun;
 	};
 
 //------------------------------------------------------------------

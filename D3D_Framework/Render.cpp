@@ -137,7 +137,7 @@ bool Render::m_createdevice()
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.OutputWindow = m_hwnd;
-	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Count = 4;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
 

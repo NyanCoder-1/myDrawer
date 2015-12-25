@@ -53,21 +53,36 @@ namespace D3D11Framework
 
 	void Framework::Run()
 	{
-		if (m_init)
-			while(m_frame());
+		// Yeah! Сосните баги надоедливые! У меня получилось нормальная структура параллельной обработки ввода и остального кода!
+		m_isRun = true;
+		std::thread t1([this]()->void {
+			if (m_init)
+				while (m_frame());
+		});
+		while (m_isRun)
+			Window::Get()->RunEvent();
+		t1.join();
 	}	
 
 	bool Framework::m_frame()
 	{
-		// обрабатываем события окна
-		m_wnd->RunEvent();
+		/*/ обрабатываем события окна
+		m_wnd->RunEvent();*/
+		if (!m_isRun)
+		{
+			m_isRun = false;
+			return false;
+		}
 		// если окно неактивно - завершаем кадр
 		if (!m_wnd->IsActive())
 			return true;
 
 		// если окно было закрыто, завершаем работу движка
 		if (m_wnd->IsExit())
+		{
+			m_isRun = false;
 			return false;
+		}
 
 		// если окно изменило размер
 		if (Window::Get()->IsResize())
@@ -77,7 +92,10 @@ namespace D3D11Framework
 
 		m_render->BeginFrame();
 		if (!m_render->Draw())
+		{
+			m_isRun = false;
 			return false;
+		}
 		m_render->EndFrame();
 
 		return true;

@@ -7,7 +7,7 @@
 #define MY_PIDIV2 (1.570796327f)
 
 
-Shape::Shape() :width(1), End(false), Changed(true)
+Shape::Shape() :width(0.05f), End(false), Changed(true), DrawIt(false)
 {}
 
 sPencil::sPencil() : is_Drawing(false)
@@ -16,6 +16,7 @@ sPencil::sPencil() : is_Drawing(false)
 }
 bool sPencil::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	is_Drawing = true;
 	points.push_back(Point(x, y));
 	Changed = true;
@@ -43,6 +44,39 @@ void sPencil::Render()
 	Lines.clear();
 	for (int i = 1; i < points.size(); i++)
 		Lines.push_back(Line(points[i - 1], points[i]));
+	Triangles.clear();
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+	}
 }
 
 sPolyline::sPolyline()
@@ -52,6 +86,7 @@ sPolyline::sPolyline()
 }
 bool sPolyline::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	points.push_back(Point(x, y));
 	Changed = true;
 	return true;
@@ -67,6 +102,39 @@ void sPolyline::Render()
 	Lines.clear();
 	for (int i = 1; i < points.size(); i++)
 		Lines.push_back(Line(points[i - 1], points[i]));
+	Triangles.clear();
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+	}
 }
 
 sRect::sRect()
@@ -79,6 +147,7 @@ sRect::sRect()
 }
 bool sRect::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
@@ -117,8 +186,40 @@ void sRect::Render()
 		Point(min(points[0].x, points[1].x), min(points[0].y, points[1].y)),
 		Point(max(points[0].x, points[1].x), max(points[0].y, points[1].y))
 	};
-	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[0].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[0].x, newpoints[1].y)));
-	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[1].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[1].x, newpoints[1].y)));
+	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[0].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[0].x, newpoints[1].y), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	Triangles.push_back(Triangle(Point(newpoints[0].x, newpoints[1].y), Point(newpoints[1].x, newpoints[0].y), Point(newpoints[1].x, newpoints[1].y), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+	}
 }
 
 sLine::sLine()
@@ -130,6 +231,7 @@ sLine::sLine()
 }
 bool sLine::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
@@ -160,6 +262,39 @@ void sLine::Render()
 {
 	Lines.clear();
 	Lines.push_back(Line(points[0], points[1]));
+	Triangles.clear();
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+	}
 }
 
 sRoundRect::sRoundRect()
@@ -173,6 +308,7 @@ sRoundRect::sRoundRect()
 }
 bool sRoundRect::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
@@ -225,14 +361,14 @@ void sRoundRect::Render()
 
 	Triangles.clear();
 
-	Triangles.push_back(Triangle(Point(x1, y1 - r), Point(x2, y1 - r), Point(x1, y2 + r)));
-	Triangles.push_back(Triangle(Point(x1, y2 + r), Point(x2, y1 - r), Point(x2, y2 + r)));
+	Triangles.push_back(Triangle(Point(x1, y1 - r), Point(x2, y1 - r), Point(x1, y2 + r), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	Triangles.push_back(Triangle(Point(x1, y2 + r), Point(x2, y1 - r), Point(x2, y2 + r), Color(0.0f, 0.0f, 0.5f, 0.5f)));
 
-	Triangles.push_back(Triangle(Point(x1 - r, y1), Point(x1, y1), Point(x1 - r, y2)));
-	Triangles.push_back(Triangle(Point(x1 - r, y2), Point(x1, y1), Point(x1, y2)));
+	Triangles.push_back(Triangle(Point(x1 - r, y1), Point(x1, y1), Point(x1 - r, y2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	Triangles.push_back(Triangle(Point(x1 - r, y2), Point(x1, y1), Point(x1, y2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
 
-	Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + r, y1), Point(x2, y2)));
-	Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + r, y1), Point(x2 + r, y2)));
+	Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + r, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + r, y1), Point(x2 + r, y2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
 	for (int i = 1; i < 101; i++)
 	{
 		float e = (MY_PIDIV2*0.01f);
@@ -245,10 +381,42 @@ void sRoundRect::Render()
 		Lines.push_back(Line(Point(x2 + fx1, y1 - fy1), Point(x2 + fx2, y1 - fy2)));
 		Lines.push_back(Line(Point(x2 + fx1, y2 + fy1), Point(x2 + fx2, y2 + fy2)));
 
-		Triangles.push_back(Triangle(Point(x1, y1), Point(x1 - fx1, y1 - fy1), Point(x1 - fx2, y1 - fy2)));
-		Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + fx2, y1 - fy2), Point(x2 + fx1, y1 - fy1)));
-		Triangles.push_back(Triangle(Point(x1, y2), Point(x1 - fx2, y2 + fy2), Point(x1 - fx1, y2 + fy1)));
-		Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + fx1, y2 + fy1), Point(x2 + fx2, y2 + fy2)));
+		Triangles.push_back(Triangle(Point(x1, y1), Point(x1 - fx1, y1 - fy1), Point(x1 - fx2, y1 - fy2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+		Triangles.push_back(Triangle(Point(x2, y1), Point(x2 + fx2, y1 - fy2), Point(x2 + fx1, y1 - fy1), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+		Triangles.push_back(Triangle(Point(x1, y2), Point(x1 - fx2, y2 + fy2), Point(x1 - fx1, y2 + fy1), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+		Triangles.push_back(Triangle(Point(x2, y2), Point(x2 + fx1, y2 + fy1), Point(x2 + fx2, y2 + fy2), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	}
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
 	}
 }
 
@@ -262,6 +430,7 @@ sEllips::sEllips()
 }
 bool sEllips::MouseDown(float x, float y)
 {
+	DrawIt = true;
 	is_Drawing = true;
 	points[0] = Point(x, y);
 	points[1] = Point(x, y);
@@ -306,6 +475,38 @@ void sEllips::Render()
 		float x2 = x0 + cos(e*(i - 1))*(maxx - minx)*0.5f;
 		float y2 = y0 + sin(e*(i - 1))*(maxy - miny)*0.5f;
 		Lines.push_back(Line(Point(x1, y1), Point(x2, y2)));
-		Triangles.push_back(Triangle(Point(x0, y0), Point(x2, y2), Point(x1, y1)));
+		Triangles.push_back(Triangle(Point(x0, y0), Point(x2, y2), Point(x1, y1), Color(0.0f, 0.0f, 0.5f, 0.5f)));
+	}
+	for (int i = 0; i < Lines.size(); i++)
+	{
+		auto p = Lines[i].points;
+		for (int j = 1; j < 101; j++)
+			for (int k = 0; k < 2; k++)
+			{
+				float x0 = p[k].x;
+				float y0 = p[k].y;
+				float e = MY_PI * 0.005f;
+				for (int i = 1; i < 5; i++)
+				{
+					float x1 = x0 + cos(e*i*(j - 1))*width;
+					float y1 = y0 + sin(e*i*(j - 1))*width;
+					float x2 = x0 + cos(e*i*j)*width;
+					float y2 = y0 + sin(e*i*j)*width;
+					Triangles.push_back(Triangle(Point(x0, y0), Point(x1, y1), Point(x2, y2), Color(0.0f, 0.0f, 0.0f, 1.0f)));
+				}
+			}
+		float deg = atan2(p[0].x - p[1].x, p[0].y - p[1].y);
+		// 1
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg - MY_PIDIV2)*width, p[1].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
+		// 2
+		Triangles.push_back(Triangle(
+			Point(p[0].x + sin(deg - MY_PIDIV2)*width, p[0].y + cos(deg - MY_PIDIV2)*width),
+			Point(p[1].x + sin(deg + MY_PIDIV2)*width, p[1].y + cos(deg + MY_PIDIV2)*width),
+			Point(p[0].x + sin(deg + MY_PIDIV2)*width, p[0].y + cos(deg + MY_PIDIV2)*width),
+			Color(0.0f, 0.0f, 0.0f, 1.0f)));
 	}
 }

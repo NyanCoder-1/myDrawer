@@ -1,6 +1,20 @@
 #pragma once
 
 
+enum ShapeTypes {
+	t_float,
+	t_color,
+};
+
+typedef struct Color
+{
+	Color() : r(0), g(0), b(0), a(0)
+	{}
+	Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a)
+	{};
+	float r, g, b, a;
+} Color;
+
 typedef struct Point
 {
 	Point(float x, float y) :x(x), y(y) {}
@@ -31,14 +45,22 @@ typedef struct Triangle
 		points[1] = Point();
 		points[2] = Point();
 	}
-	Triangle(Point point1, Point point2, Point point3)
+	Triangle(Point point1, Point point2, Point point3, Color color) : color(color)
 	{
 		points[0] = point1;
 		points[1] = point2;
 		points[2] = point3;
 	};
 	Point points[3];
+	Color color;
 } Triangle;
+
+typedef struct Parameter
+{
+	void *pointers;
+	ShapeTypes type;
+	std::string name;
+} Parameter;
 
 class Shape
 {
@@ -65,13 +87,18 @@ public:
 		Changed = false;
 		return result;
 	};
+	
+	bool CanIDraw() const { return DrawIt; };
+
+	void DontDraw() { DrawIt = false; };
+	void YouCanDraw() { DrawIt = true; };
 
 protected:
 	float width;
 	int id;
 	bool End;
 
-	bool Changed;
+	bool Changed, DrawIt;
 	
 	vector<Line> Lines;
 	vector<Triangle> Triangles;
@@ -89,8 +116,8 @@ public:
 
 	void Render() override;
 protected:
-	bool is_Drawing;
 	std::vector<Point> points;
+	bool is_Drawing;
 };
 
 class sPolyline : public Shape

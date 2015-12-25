@@ -7,7 +7,6 @@
 
 class MainRender: public Render
 {
-	friend class ImprovedShape;
 	friend class Input;
 	friend class Control;
 	friend class BMButton;
@@ -19,13 +18,12 @@ public:
 	void Close() override;
 	void Resize() override;
 
-	void SetCurrentTool(byte t);
-
 	void UpdatePos();
 
 private:
 	/// «десь € объ€влю
 	void InitializeControls(void);
+	void DrawShapes(void);
 	HidingTab *m_pHidingTab;
 	CustomImgRadioButtons *m_pToolsChoose;
 	HScrollBar *m_pDrawingAreaHScrollBar;
@@ -33,7 +31,7 @@ private:
 	HoverBox *m_pColorChooser;
 
 	bool m_GUIshow;
-	XMFLOAT3 m_pnz;// x, y, zoom
+	struct { float x, y, zoom; } m_pnz;// x, y, zoom
 	XMFLOAT4 m_MinXYMaxXY;
 
 	ID3D11Buffer *m_WVP;
@@ -49,26 +47,8 @@ private:
 	Tools* currtool;
 
 	vector<Shape*> m_pShapes;
-};
-
-class ImprovedShape
-{
-public:
-	ImprovedShape(MainRender* render) : m_pRender(render), m_pShape(NULL), m_pVBLines(nullptr), m_pVBTriangles(nullptr) {};
-	ImprovedShape(MainRender* render, Shape *shape) : m_pRender(render), m_pShape(shape), m_pVBLines(nullptr), m_pVBTriangles(nullptr) {};
-
-	void Draw();
-	void Close();
-
-	void SetShape(Shape *shape);
-
-	Shape *m_pShape;
-
-protected:
-	MainRender *m_pRender;
-	ID3D11Buffer *m_pVBLines;
-	ID3D11Buffer *m_pVBTriangles;
-	size_t lsize, tsize;
+	typedef struct { ID3D11Buffer* pVB = nullptr; int vertices = 0; } MyVertexBuffer;
+	vector <MyVertexBuffer> m_vertexBuffer;
 };
 
 class Input : public InputListener

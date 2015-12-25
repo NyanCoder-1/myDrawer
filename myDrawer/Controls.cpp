@@ -52,9 +52,23 @@ bool BMButton::MouseDown(const MouseEventClick &arg)
 {
 	if (!visible)
 		return false;
-	for (function<void()> f : OnClick)
-		f();
+	if (in(arg.x, x, x + width) && in(arg.y, y, y + height)) {
+		m_isClicking = true;
+		return true;
+	}
 	return true;
+}
+bool BMButton::MouseUp(const MouseEventClick &arg)
+{
+	if (m_isClicking)
+	{
+		if (in(arg.x, x, x + width) && in(arg.y, y, y + height))
+			for (function<void()> f : OnClick)
+				f();
+		m_isClicking = false;
+		return true;
+	}
+	return false;
 }
 
 
@@ -112,9 +126,23 @@ bool Button::MouseDown(const MouseEventClick &arg)
 {
 	if (!visible)
 		return false;
-	for (function<void()> f : OnClick)
-		f();
+	if (in(arg.x, x, x + width) && in(arg.y, y, y + height)) {
+		m_isClicking = true;
+		return true;
+	}
 	return true;
+}
+bool Button::MouseUp(const MouseEventClick &arg)
+{
+	if (m_isClicking)
+	{
+		if (in(arg.x, x, x + width) && in(arg.y, y, y + height))
+			for (function<void()> f : OnClick)
+				f();
+		m_isClicking = false;
+		return true;
+	}
+	return false;
 }
 
 
@@ -132,13 +160,13 @@ HidingTab::HidingTab(MainRender *render) :Control(render)
 	m_imgs[4]->Init(L"data/images/ht_arrowDown.png", 35, 15);
 	m_imgs.push_back(new Image(render));
 	m_imgs[5]->Init(L"data/images/ht_arrowUp.png", 35, 15);
-	m_isHide = false;
+	m_isHide = true;
 }
 void HidingTab::Draw()
 {
 	if (!visible)
 		return;
-	if (!m_isHide)
+	if (m_isHide)
 	{
 		m_imgs[0]->Draw(x, y + height - 15);
 		m_imgs[5]->Draw(x, y + height - 15);
@@ -164,20 +192,28 @@ void HidingTab::Draw()
 }
 bool HidingTab::MouseDown(const MouseEventClick &arg)
 {
-	if (!m_isHide)
+	if (m_isHide)
 	{
-		if (in(arg.x, x, x + 34) && in(arg.y, y + height - 15, y + height - 1))
+		/*if (in(arg.x, x, x + 34) && in(arg.y, y + height - 15, y + height - 1))
 		{
 			m_isHide = true;
 			m_render->UpdatePos();
 			return true;
+		}*/
+		if (in(arg.x, x, x + 34) && in(arg.y, y + height - 15, y + height - 1)) {
+			m_isButtonClicking = true;
+			return true;
 		}
 	}
 	else {
-		if (in(arg.x, x, x + 34) && in(arg.y, y, y + 14))
+		/*if (in(arg.x, x, x + 34) && in(arg.y, y, y + 14))
 		{
 			m_isHide = false;
 			m_render->UpdatePos();
+			return true;
+		}*/
+		if (in(arg.x, x, x + 34) && in(arg.y, y, y + 14)) {
+			m_isButtonClicking = true;
 			return true;
 		}
 		if (in(arg.x, x, x + width - 1) && in(arg.y, y + 15, y + height - 1))
@@ -187,10 +223,60 @@ bool HidingTab::MouseDown(const MouseEventClick &arg)
 				MouseEventClick arg1 = arg;
 				arg1.x -= x;
 				arg1.y -= y + 15;
-				if (in(arg1.x, control->x, control->x + control->width - 1) && in(arg1.y, control->y, control->y + control->height - 1) && control->MouseDown(arg1))
+				if (control->IsVisible() && in(arg1.x, control->x, control->x + control->width - 1) && in(arg1.y, control->y, control->y + control->height - 1) && control->MouseDown(arg1))
 					return true;
 			}
 			return true;
+		}
+	}
+	return false;
+}
+bool HidingTab::MouseMove(const MouseEvent &arg)
+{
+	if (!m_isHide)
+	{
+		for (Control *control : Controls)
+		{
+			MouseEvent arg1 = arg;
+			arg1.x -= x;
+			arg1.y -= y + 15;
+			if (control->IsVisible() && control->MouseMove(arg1))
+				return true;
+		}
+	}
+}
+bool HidingTab::MouseUp(const MouseEventClick &arg)
+{
+	if (m_isButtonClicking)
+	{
+		if (m_isHide)
+		{
+			if (in(arg.x, x, x + 34) && in(arg.y, y + height - 15, y + height - 1))
+			{
+				m_isHide = false;
+				m_render->UpdatePos();
+			}
+		}
+		else
+		{
+			if (in(arg.x, x, x + 34) && in(arg.y, y, y + 14))
+			{
+				m_isHide = true;
+				m_render->UpdatePos();
+			}
+		}
+		m_isButtonClicking = false;
+		return true;
+	}
+	if (!m_isHide)
+	{
+		for (Control *control : Controls)
+		{
+			MouseEventClick arg1 = arg;
+			arg1.x -= x;
+			arg1.y -= y + 15;
+			if (control->IsVisible() && control->MouseUp(arg1))
+				return true;
 		}
 	}
 	return false;
@@ -639,6 +725,8 @@ void ColoredRectButton::Draw()
 }
 bool ColoredRectButton::MouseDown(const MouseEventClick &arg)
 {
+	if (!visible)
+		return false;
 	if (in(arg.x, x, x + width) && in(arg.y, y, y + height)) {
 		m_isClicking = true;
 		return true;

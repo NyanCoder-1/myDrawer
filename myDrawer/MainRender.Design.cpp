@@ -8,15 +8,21 @@ void MainRender::InitializeControls(void)
 	m_ptxt = new Text(this, m_pfont);
 	m_ptxt->Init(L"", false, 255);
 
-	tools.push_back(new tHand(m_pnz.x, m_pnz.y, m_pnz.z));
-	tools.push_back(new tPencil(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tLine(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tPolyline(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tRectangle(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tRoundedRect(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tEllips(m_pnz.x, m_pnz.y, m_pnz.z, m_pShapes));
-	tools.push_back(new tZoom(m_pnz.x, m_pnz.y, m_width, m_height, m_pnz.z));
+	m_pShapes.push_back(new sPencil());
+
+#define givepnz m_pnz.x, m_pnz.y
+#define givescrsize m_width, m_height
+	tools.push_back(new tHand(givepnz, m_pnz.zoom));
+	tools.push_back(new tPencil(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tLine(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tPolyline(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tRectangle(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tRoundedRect(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tEllips(givepnz, givescrsize, m_pnz.zoom, m_pShapes));
+	tools.push_back(new tZoom(givepnz, givescrsize, m_pnz.zoom));
 	currtool = tools[0];
+#undef givepnz
+#undef givescrsize
 
 	m_pHidingTab = new HidingTab(this);
 	m_pToolsChoose = new CustomImgRadioButtons(this);
@@ -153,12 +159,12 @@ void MainRender::UpdatePos()
 	m_pDrawingAreaVScrollBar->SetPos(m_width - 10, 0);
 	if (m_pHidingTab->m_isHide)
 	{
-		m_pDrawingAreaHScrollBar->SetPos(35, m_height - 110);
-		m_pDrawingAreaVScrollBar->SetSize(10, m_height - 115);
+		m_pDrawingAreaHScrollBar->SetPos(35, m_height - 10);
+		m_pDrawingAreaVScrollBar->SetSize(10, m_height - 15);
 	}
 	else
 	{
-		m_pDrawingAreaHScrollBar->SetPos(35, m_height - 10);
-		m_pDrawingAreaVScrollBar->SetSize(10, m_height - 15);
+		m_pDrawingAreaHScrollBar->SetPos(35, m_height - 110);
+		m_pDrawingAreaVScrollBar->SetSize(10, m_height - 115);
 	}
 }

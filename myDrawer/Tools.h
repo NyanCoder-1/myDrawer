@@ -44,7 +44,7 @@ private:
 class tShape : public Tools
 {
 public:
-	tShape(float &x, float &y, float &zoom, vector<Shape*> &shapes) { SetPosVars(x, y); SetZoomVar(zoom); Shapes = &shapes; };
+	tShape(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) { SetPosVars(x, y); SetZoomVar(zoom); SetScreenSize(width, height); Shapes = &shapes; };
 
 	virtual bool MouseDown(MBtn button, float x, float y) override;
 	virtual bool MouseMove(float x, float y) override;
@@ -65,36 +65,36 @@ public:
 class tPencil : public tShape
 {
 public:
-	tPencil(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tPencil(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
 class tLine : public tShape
 {
 public:
-	tLine(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tLine(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
 class tPolyline : public tShape
 {
 public:
-	tPolyline(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tPolyline(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
 class tRectangle : public tShape
 {
 public:
-	tRectangle(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tRectangle(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
 class tRoundedRect : public tShape
 {
 public:
-	tRoundedRect(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tRoundedRect(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
 class tEllips : public tShape
 {
 public:
-	tEllips(float &x, float &y, float &zoom, vector<Shape*> &shapes) : tShape(x, y, zoom, shapes) {};
+	tEllips(float &x, float &y, unsigned int &width, unsigned int &height, float &zoom, vector<Shape*> &shapes) : tShape(x, y, width, height, zoom, shapes) {};
 	virtual void CreateShape() override;
 };
